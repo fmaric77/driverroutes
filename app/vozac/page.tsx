@@ -73,10 +73,14 @@ const filteredPutovanja = data.filter((putovanje: Putovanje) => {
 
 
         setPutovanja(filteredPutovanja);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError(err.message || 'Greška pri učitavanju putovanja.');
-      } finally {
+        if (err instanceof Error) {
+          setError(err.message || 'Greška pri učitavanju putovanja.');
+        } else {
+          setError('Greška pri učitavanju putovanja.');
+        }
+      }finally {
         setLoading(false);
       }
     };
