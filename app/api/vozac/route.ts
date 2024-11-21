@@ -1,8 +1,31 @@
 // app/api/vozac/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '../../lib/db';
+import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
+// Interfaces
+interface PutovanjeRow extends RowDataPacket {
+  id: number;
+  datum: Date;
+  vozac_ime: string;
+  vozac_prezime: string;
+  registracija: string;
+  ruta: string;
+}
+
+interface PutovanjeInput {
+  id?: number;
+  datum: string;
+  vozac_id: number;
+  kamion_id: number;
+  ruta_id: number;
+}
+
+interface PutovanjeOutput extends PutovanjeInput {
+  id: number;
+}
+
+// GET endpoint
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const vozacId = searchParams.get('vozac_id');
@@ -14,9 +37,8 @@ export async function GET(request: NextRequest) {
   const connection = await getConnection();
 
   try {
-    const [rows] = await connection.execute(
-      `
-      SELECT 
+    const [rows] = await connection.execute<PutovanjeRow[]>(
+      `SELECT 
         p.id, 
         p.datum, 
         v.ime_vozaca AS vozac_ime, 
@@ -35,68 +57,97 @@ export async function GET(request: NextRequest) {
         p.vozac_id = ? AND
         p.datum >= CURDATE()
       ORDER BY 
-        p.datum ASC
-      `,
+        p.datum ASC`,
       [vozacId]
     );
 
-// In route.ts, modify the formattedRows mapping:
-const formattedRows = rows.map((row: any) => ({
-  ...row,
-  // Format MySQL date (YYYY-MM-DD) without any conversion
-  datum: row.datum.toISOString().slice(0, 10)
-}));
+    const formattedRows = rows.map((row) => ({
+      ...row,
+      datum: row.datum.toISOString().slice(0, 10)
+    }));
 
     return NextResponse.json(formattedRows);
-  } catch (error) {
-    console.error('Greška pri dohvaćanju putovanja:', error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Greška pri dohvaćanju putovanja:', errorMessage);
     return NextResponse.json({ error: 'Failed to fetch putovanja' }, { status: 500 });
   } finally {
-    connection.end();
+    await connection.end();
   }
 }
 
+// POST endpoint
 export async function POST(request: NextRequest) {
   const connection = await getConnection();
-  const { datum, vozac_id, kamion_id, ruta_id } = await request.json();
+  
   try {
-    const [result]: any = await connection.execute(
+    const input: PutovanjeInput = await request.json();
+    const { datum, vozac_id, kamion_id, ruta_id } = input;
+
+    const [result] = await connection.execute<ResultSetHeader>(
       'INSERT INTO Putovanja (datum, vozac_id, kamion_id, ruta_id) VALUES (?, ?, ?, ?)',
       [datum, vozac_id, kamion_id, ruta_id]
     );
-    return NextResponse.json({ id: result.insertId, datum, vozac_id, kamion_id, ruta_id }, { status: 201 });
-  } catch (error) {
+
+    const output: PutovanjeOutput = {
+      id: result.insertId,
+      datum,
+      vozac_id,
+      kamion_id,
+      ruta_id
+    };
+
+    return NextResponse.json(output, { status: 201 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Failed to add putovanje:', errorMessage);
     return NextResponse.json({ error: 'Failed to add putovanje' }, { status: 500 });
   } finally {
-    connection.end();
+    await connection.end();
   }
 }
 
+// PUT endpoint
 export async function PUT(request: NextRequest) {
   const connection = await getConnection();
-  const { id, datum, vozac_id, kamion_id, ruta_id } = await request.json();
+  
   try {
+    const input: PutovanjeOutput = await request.json();
+    const { id, datum, vozac_id, kamion_id, ruta_id } = input;
+
     await connection.execute(
       'UPDATE Putovanja SET datum = ?, vozac_id = ?, kamion_id = ?, ruta_id = ? WHERE id = ?',
       [datum, vozac_id, kamion_id, ruta_id, id]
     );
-    return NextResponse.json({ id, datum, vozac_id, kamion_id, ruta_id });
-  } catch (error) {
+
+    return NextResponse.json(input);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Failed to update putovanje:', errorMessage);
     return NextResponse.json({ error: 'Failed to update putovanje' }, { status: 500 });
   } finally {
-    connection.end();
+    await connection.end();
   }
 }
 
+// DELETE endpoint
 export async function DELETE(request: NextRequest) {
   const connection = await getConnection();
-  const { id } = await request.json();
+  
   try {
-    await connection.execute('DELETE FROM Putovanja WHERE id = ?', [id]);
+    const { id } = await request.json();
+
+    await connection.execute(
+      'DELETE FROM Putovanja WHERE id = ?',
+      [id]
+    );
+
     return NextResponse.json({ message: 'Putovanje deleted successfully' });
-  } catch (error) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Failed to delete putovanje:', errorMessage);
     return NextResponse.json({ error: 'Failed to delete putovanje' }, { status: 500 });
   } finally {
-    connection.end();
+    await connection.end();
   }
 }

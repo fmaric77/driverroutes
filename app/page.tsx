@@ -61,8 +61,9 @@ const LoginPage = () => {
         },
         body: JSON.stringify({ action, vozacId }),
       });
-    } catch (error) {
-      console.error('Error logging action:', error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error logging action:', errorMessage);
     }
   };
 
