@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
   try {
     // Specify the generic type parameter <Vozac[]>
-    const [rows, fields]: [Vozac[], FieldPacket[]] = await connection.execute<Vozac[]>(
+    const [rows]: [Vozac[], FieldPacket[]] = await connection.execute<Vozac[]>(
       'SELECT * FROM Vozaci WHERE oib_vozaca = ?',
       [oib]
     );
