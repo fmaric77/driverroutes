@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const connection = await getConnection();
 
   try {
-    const [rows] = await connection.execute('SELECT * FROM Vozaci WHERE oib_vozaca = ?', [oib]);
+    const [rows]: any = await connection.execute('SELECT * FROM Vozaci WHERE oib_vozaca = ?', [oib]);
 
     if (rows.length === 0) {
       return NextResponse.json({ message: 'Neispravan OIB ili lozinka' }, { status: 401 });
