@@ -18,10 +18,10 @@ interface Putovanje {
 // Helper function to format date as dd.mm.yyyy
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  date.setDate(date.getDate() + 1);
+  date.setDate(date.getDate());
 
   const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const month = (date.getMonth()).toString().padStart(2, '0');
   const year = date.getFullYear();
 
   return `${day}.${month}.${year}`;
@@ -66,7 +66,7 @@ const VozacDashboard = () => {
 
         const todayDate = new Date();
         const todayString = `${todayDate.getFullYear()}-${String(
-          todayDate.getMonth() + 1
+          todayDate.getMonth() 
         ).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
 
         const filteredPutovanja = data.filter((putovanje: Putovanje) => {
