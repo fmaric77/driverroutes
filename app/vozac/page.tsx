@@ -66,7 +66,7 @@ const VozacDashboard = () => {
 
         const todayDate = new Date();
         const todayString = `${todayDate.getFullYear()}-${String(
-          todayDate.getMonth() 
+          todayDate.getMonth() + 1
         ).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
 
         const filteredPutovanja = data.filter((putovanje: Putovanje) => {
