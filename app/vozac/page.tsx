@@ -12,15 +12,14 @@ interface Putovanje {
   vozac_prezime: string;
   registracija: string;
   ruta: string;
+  status: string; // Added status field
 }
 
 // Helper function to format date as dd.mm.yyyy
 const formatDate = (dateString: string) => {
-  // Create date and add one day
   const date = new Date(dateString);
   date.setDate(date.getDate() + 1);
 
-  // Format with padding
   const day = date.getDate().toString().padStart(2, '0');
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
@@ -65,30 +64,25 @@ const VozacDashboard = () => {
           throw new Error('Failed to fetch putovanja');
         }
 
-        // Parse and filter trips based on current date
         const todayDate = new Date();
         const todayString = `${todayDate.getFullYear()}-${String(
           todayDate.getMonth() + 1
         ).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
 
         const filteredPutovanja = data.filter((putovanje: Putovanje) => {
-          // Direct string comparison
           return putovanje.datum >= todayString;
         });
 
-        // Detect new putovanja
         const previousPutovanja = previousPutovanjaRef.current;
-        const newPutovanja = filteredPutovanja.filter(
-          (putovanje) => !previousPutovanja.some((p) => p.id === putovanje.id)
-        );
+        const updatedPutovanja = filteredPutovanja.filter((putovanje) => {
+          const prev = previousPutovanja.find(p => p.id === putovanje.id);
+          return prev && prev.status !== putovanje.status;
+        });
 
-        if (
-          newPutovanja.length > 0 &&
-          Notification.permission === 'granted'
-        ) {
-          newPutovanja.forEach((putovanje) => {
-            new Notification('Novo Putovanje', {
-              body: `Datum: ${formatDate(putovanje.datum)}\nRuta: ${putovanje.ruta}`,
+        if (updatedPutovanja.length > 0 && Notification.permission === 'granted') {
+          updatedPutovanja.forEach((putovanje) => {
+            new Notification('Putovanje ažurirano', {
+              body: `Datum: ${formatDate(putovanje.datum)}\nRuta: ${putovanje.ruta}\nStatus: ${putovanje.status}`,
             });
           });
         }
@@ -107,7 +101,6 @@ const VozacDashboard = () => {
       }
     };
 
-    // Fetch putovanja every minute
     const interval = setInterval(fetchPutovanja, 60000);
     fetchPutovanja();
 
@@ -159,11 +152,13 @@ const VozacDashboard = () => {
                 <strong>Datum:</strong> {formatDate(putovanje.datum)}
               </p>
               <p>
-                <strong>Vozač:</strong> {putovanje.vozac_ime}{' '}
-                {putovanje.vozac_prezime}
+                <strong>Vozač:</strong> {putovanje.vozac_ime} {putovanje.vozac_prezime}
               </p>
               <p>
                 <strong>Kamion:</strong> {putovanje.registracija}
+              </p>
+              <p>
+                <strong>Status:</strong> {putovanje.status}
               </p>
               <p>
                 <strong>Ruta:</strong> {putovanje.ruta}
