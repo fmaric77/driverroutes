@@ -14,14 +14,6 @@ interface PutovanjeRow extends RowDataPacket {
   ruta: string;
 }
 
-interface PutovanjeInput {
-  id?: number;
-  datum: string;
-  vozac_id: number;
-  kamion_id: number;
-  ruta_id: number;
-}
-
 // GET endpoint
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
