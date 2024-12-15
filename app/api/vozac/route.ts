@@ -22,10 +22,6 @@ interface PutovanjeInput {
   ruta_id: number;
 }
 
-interface PutovanjeOutput extends PutovanjeInput {
-  id: number;
-}
-
 // GET endpoint
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
