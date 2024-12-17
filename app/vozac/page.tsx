@@ -7,15 +7,14 @@ import { useRouter } from 'next/navigation';
 
 interface Putovanje {
   id: number;
-  datum: string; // ISO format 'yyyy-mm-dd'
+  datum: string; 
   vozac_ime: string;
   vozac_prezime: string;
   registracija: string;
   ruta: string;
-  status: string; // Added status field
+  status: string; 
 }
 
-// Helper function to format date as dd.mm.yyyy
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   date.setDate(date.getDate());
@@ -34,7 +33,8 @@ const VozacDashboard = () => {
   const router = useRouter();
   const previousPutovanjaRef = useRef<Putovanje[]>([]);
 
-  // Request notification permission when the component mounts
+
+  // Zahtjev za dozvolu za prikazivanje obavijesti
   useEffect(() => {
     if (Notification.permission !== 'granted') {
       Notification.requestPermission();

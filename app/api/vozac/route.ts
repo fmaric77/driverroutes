@@ -3,18 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '../../lib/db';
 import { RowDataPacket } from 'mysql2';
 
-// Interfaces
 interface PutovanjeRow extends RowDataPacket {
   id: number;
   datum: Date;
   vozac_ime: string;
   vozac_prezime: string;
   registracija: string;
-  status: string; // Added this line
+  status: string; 
   ruta: string;
 }
 
-// GET endpoint
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const vozacId = searchParams.get('vozac_id');
@@ -33,7 +31,7 @@ export async function GET(request: NextRequest) {
         v.ime_vozaca AS vozac_ime, 
         v.prezime_vozaca AS vozac_prezime, 
         k.registracija, 
-        k.status,       -- Added this line
+        k.status,       
         sr.ruta 
       FROM 
         Putovanja p
