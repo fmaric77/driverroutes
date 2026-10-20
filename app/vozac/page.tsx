@@ -17,13 +17,8 @@ interface Putovanje {
 }
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  date.setDate(date.getDate());
-
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const year = date.getFullYear();
-
+  const [year, month, day] = dateString.slice(0, 10).split('-');
+  if (!year || !month || !day) return dateString;
   return `${day}.${month}.${year}`;
 };
 
@@ -147,9 +142,6 @@ const VozacDashboard = () => {
                     <p className="text-xs uppercase tracking-wide text-slate-400">{formatDate(putovanje.datum)}</p>
                     <h2 className="mt-1 text-lg font-semibold">{putovanje.ruta}</h2>
                   </div>
-                  <span className="shrink-0 rounded-full bg-sky-400/15 px-3 py-1 text-xs font-medium text-sky-100 ring-1 ring-sky-400/30">
-                    {putovanje.status}
-                  </span>
                 </div>
                 <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <div>
@@ -160,6 +152,12 @@ const VozacDashboard = () => {
                     <dt className="text-slate-400">Vozač</dt>
                     <dd className="mt-0.5">{putovanje.vozac_ime} {putovanje.vozac_prezime}</dd>
                   </div>
+                  {index === 0 && (
+                    <div>
+                      <dt className="text-slate-400">Status</dt>
+                      <dd className="mt-0.5">{putovanje.status}</dd>
+                    </div>
+                  )}
                   {index === 0 && (
                     <div>
                       <dt className="text-slate-400">Rampa</dt>

@@ -1,11 +1,12 @@
 // app/api/vozac/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '../../lib/db';
+import { openTripSql } from '../../lib/openTrip';
 import { RowDataPacket } from 'mysql2';
 
 interface PutovanjeRow extends RowDataPacket {
   id: number;
-  datum: Date;
+  datum: string;
   vozac_ime: string;
   vozac_prezime: string;
   registracija: string;
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     const [rows] = await connection.execute<PutovanjeRow[]>(
       `SELECT 
         p.id, 
-        p.datum, 
+        DATE_FORMAT(p.datum, '%Y-%m-%d') AS datum, 
         v.ime_vozaca AS vozac_ime, 
         v.prezime_vozaca AS vozac_prezime, 
         k.registracija, 
@@ -49,19 +50,14 @@ export async function GET(request: NextRequest) {
       JOIN 
         SpremneRute sr ON p.ruta_id = sr.id
       WHERE 
-        p.vozac_id = ? AND
-        p.datum >= CURDATE()
-      ORDER BY 
+        p.vozac_id = ? AND (p.datum >= CURDATE() OR ${openTripSql})
+      ORDER BY
+        (${openTripSql}) DESC,
         p.datum ASC, p.id ASC`,
       [vozacId]
     );
 
-    const formattedRows = rows.map((row) => ({
-      ...row,
-      datum: row.datum.toISOString().slice(0, 10)
-    }));
-
-    return NextResponse.json(formattedRows);
+    return NextResponse.json(rows);
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Greška pri dohvaćanju putovanja:', errorMessage);
