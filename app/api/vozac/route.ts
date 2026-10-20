@@ -9,8 +9,9 @@ interface PutovanjeRow extends RowDataPacket {
   vozac_ime: string;
   vozac_prezime: string;
   registracija: string;
-  status: string; 
+  status: string;
   ruta: string;
+  rampa: string | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -32,7 +33,13 @@ export async function GET(request: NextRequest) {
         v.prezime_vozaca AS vozac_prezime, 
         k.registracija, 
         k.status,       
-        sr.ruta 
+        sr.ruta,
+        (
+          SELECT ks.rampa
+          FROM KamioniNaSkladistu ks
+          WHERE ks.kamion_id = k.id
+          LIMIT 1
+        ) AS rampa
       FROM 
         Putovanja p
       JOIN 
@@ -45,7 +52,7 @@ export async function GET(request: NextRequest) {
         p.vozac_id = ? AND
         p.datum >= CURDATE()
       ORDER BY 
-        p.datum ASC`,
+        p.datum ASC, p.id ASC`,
       [vozacId]
     );
 

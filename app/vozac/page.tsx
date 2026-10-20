@@ -12,7 +12,8 @@ interface Putovanje {
   vozac_prezime: string;
   registracija: string;
   ruta: string;
-  status: string; 
+  status: string;
+  rampa: string | null;
 }
 
 const formatDate = (dateString: string) => {
@@ -30,6 +31,7 @@ const VozacDashboard = () => {
   const [putovanja, setPutovanja] = useState<Putovanje[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [vozacIme, setVozacIme] = useState('');
   const router = useRouter();
   const previousPutovanjaRef = useRef<Putovanje[]>([]);
 
@@ -50,6 +52,7 @@ const VozacDashboard = () => {
       }
 
       const vozac = JSON.parse(storedVozac);
+      setVozacIme([vozac.ime, vozac.prezime].filter(Boolean).join(' '));
       if (!vozac.id) {
         setError('Neispravan podatak o vozaču.');
         setLoading(false);
@@ -112,66 +115,62 @@ const VozacDashboard = () => {
     router.push('/');
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        Loading...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-screen text-red-500 bg-gray-900">
-        {error}
-      </div>
-    );
-  }
-
-  if (putovanja.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-        Nemate nadolazećih putovanja
-      </div>
-    );
-  }
-
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-900">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-md w-full max-w-3xl">
-        <h1 className="text-2xl font-bold mb-6 text-center text-white">
-          Vaša Putovanja
-        </h1>
-        <ul className="space-y-4">
-          {putovanja.map((putovanje) => (
-            <li
-              key={putovanje.id}
-              className="p-4 border border-gray-600 rounded-lg shadow bg-gray-700 text-white"
-            >
-              <p>
-                <strong>Datum:</strong> {formatDate(putovanje.datum)}
-              </p>
-              <p>
-                <strong>Vozač:</strong> {putovanje.vozac_ime} {putovanje.vozac_prezime}
-              </p>
-              <p>
-                <strong>Kamion:</strong> {putovanje.registracija}
-              </p>
-              <p>
-                <strong>Status:</strong> {putovanje.status}
-              </p>
-              <p>
-                <strong>Ruta:</strong> {putovanje.ruta}
-              </p>
-            </li>
-          ))}
-        </ul>
-        <button
-          onClick={handleLogout}
-          className="mt-6 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Odjavi se
-        </button>
+    <div className="min-h-screen px-4 py-8">
+      <div className="mx-auto w-full max-w-3xl">
+        <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="ui-kicker">Vozač</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-tight">Vaša putovanja</h1>
+            <p className="mt-1 text-sm text-slate-400">{vozacIme || 'Nadolazeće rute'}</p>
+          </div>
+          <button type="button" onClick={handleLogout} className="ui-btn ui-btn-danger">
+            Odjavi se
+          </button>
+        </header>
+
+        {loading && <p className="text-slate-300">Učitavanje...</p>}
+        {error && (
+          <p className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            {error}
+          </p>
+        )}
+        {!loading && !error && putovanja.length === 0 && (
+          <p className="ui-card px-5 py-8 text-slate-300">Nemate nadolazećih putovanja.</p>
+        )}
+        {!loading && !error && putovanja.length > 0 && (
+          <ul className="space-y-3">
+            {putovanja.map((putovanje, index) => (
+              <li key={putovanje.id} className="ui-card p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">{formatDate(putovanje.datum)}</p>
+                    <h2 className="mt-1 text-lg font-semibold">{putovanje.ruta}</h2>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-sky-400/15 px-3 py-1 text-xs font-medium text-sky-100 ring-1 ring-sky-400/30">
+                    {putovanje.status}
+                  </span>
+                </div>
+                <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <dt className="text-slate-400">Kamion</dt>
+                    <dd className="mt-0.5 font-mono tracking-wider">{putovanje.registracija}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-slate-400">Vozač</dt>
+                    <dd className="mt-0.5">{putovanje.vozac_ime} {putovanje.vozac_prezime}</dd>
+                  </div>
+                  {index === 0 && (
+                    <div>
+                      <dt className="text-slate-400">Rampa</dt>
+                      <dd className="mt-0.5">{putovanje.rampa || 'Nije dodijeljena'}</dd>
+                    </div>
+                  )}
+                </dl>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
